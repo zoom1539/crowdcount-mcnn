@@ -5,3 +5,6 @@ final_models
 saved_models
 *_epochs.py
 *~
+data
+.vscode/launch.json
+.vscode/settings.json
