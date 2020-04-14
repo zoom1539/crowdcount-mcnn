@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
+from torch.optim import lr_scheduler
 
 from mycode.model import MCNN, weights_init
 from mycode.dataset import CrowdDataset
@@ -15,7 +15,7 @@ from tqdm import tqdm
 # hyper_param
 start_step = 1
 end_step = 2000
-lr = 0.00001
+lr = 0.0001
 momentum = 0.9
 val_interval = 50
 save_interval = 100
@@ -49,6 +49,7 @@ net = net.cuda(device_ids[0])
 criterion = nn.MSELoss()
 #optimizer = optim.SGD(net.parameters(), lr = lr, momentum = momentum, weight_decay = 1e-4)
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=lr)
+lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
 
 # training
 output_dir = 'data/saved_models'
@@ -60,13 +61,13 @@ step_cnt = 0
 re_cnt = False
 
 for epoch in range(start_step, end_step+1):  
-    print('EPOCH: ', epoch)
-    
+    print('Epoch {}/{}'.format(epoch, end_step))
+
     net.train()
     for i, data in enumerate(dataloader_train):                
         img,gt_dmap = data
-        img_cuda = Variable(img.float().cuda(device_ids[0]))
-        gt_dmap_cuda = Variable(gt_dmap.float().cuda(device_ids[0]))
+        img_cuda = img.float().cuda(device_ids[0])
+        gt_dmap_cuda = gt_dmap.float().cuda(device_ids[0])
         density_map_cuda = net(img_cuda)
         loss = criterion(density_map_cuda, gt_dmap_cuda)
         
@@ -104,6 +105,8 @@ for epoch in range(start_step, end_step+1):
             print("loss_avg: %.3f" %(loss_sum / (i + 1)))
         
             torch.save(net.state_dict(), "%s/net_%03d_%.3f.pth" %(output_dir, epoch, loss_sum / (i + 1)))
+
+    lr_scheduler.step()
 
         
     
