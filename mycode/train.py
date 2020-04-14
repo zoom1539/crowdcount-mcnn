@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.autograd import Variable
 
 from mycode.model import MCNN, weights_init
 from mycode.dataset import CrowdDataset
@@ -64,8 +65,8 @@ for epoch in range(start_step, end_step+1):
     net.train()
     for i, data in enumerate(dataloader_train):                
         img,gt_dmap = data
-        img_cuda = img.float().cuda(device_ids[0])
-        gt_dmap_cuda = gt_dmap.float().cuda(device_ids[0])
+        img_cuda = Variable(img.float().cuda(device_ids[0]))
+        gt_dmap_cuda = Variable(gt_dmap.float().cuda(device_ids[0]))
         density_map_cuda = net(img_cuda)
         loss = criterion(density_map_cuda, gt_dmap_cuda)
         
