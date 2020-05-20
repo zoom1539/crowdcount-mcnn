@@ -7,8 +7,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 
-from mycode.model import MCNN, weights_init
-from mycode.dataset import CrowdDataset
+from model import MCNN, weights_init
+from dataset import CrowdDataset
 from tqdm import tqdm
 
 
@@ -49,7 +49,7 @@ net = net.cuda(device_ids[0])
 criterion = nn.MSELoss()
 #optimizer = optim.SGD(net.parameters(), lr = lr, momentum = momentum, weight_decay = 1e-4)
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=lr)
-lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
+lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 
 # training
 output_dir = 'data/saved_models'
@@ -80,12 +80,12 @@ for epoch in range(start_step, end_step+1):
             gt_count = np.sum(gt_dmap)    
             density_map = density_map_cuda.data.cpu().numpy()
             count = np.sum(density_map)
-            print('gt_count: ', gt_count, 'count: ', count, 'loss: ', count - gt_count)    
+            print('gt_count: ', gt_count, 'count: ', count, 'avg loss: ', (count - gt_count) / batch_size)    
             plt.imsave('data/density_map.bmp',density_map[0,0,:,:])
             plt.imsave('data/gt_dmap.bmp',gt_dmap[0,0,:,:])
             img = img.numpy().transpose((0,2,3,1))
             plt.imsave('data/img.bmp',img[0,:,:,:])
-          
+        
     if epoch % save_interval == 0:
         with torch.no_grad():
             net.eval()
@@ -102,9 +102,9 @@ for epoch in range(start_step, end_step+1):
                 count = np.sum(density_map)
                 loss_sum += abs(count - gt_count)
                 
-            print("loss_avg: %.3f" %(loss_sum / (i + 1)))
+            print("loss_avg: %.5f" %(loss_sum / (i + 1) / batch_size))
         
-            torch.save(net.state_dict(), "%s/net_%03d_%.3f.pth" %(output_dir, epoch, loss_sum / (i + 1)))
+            torch.save(net.state_dict(), "%s/net_%03d_%.5f.pth" %(output_dir, epoch, loss_sum / (i + 1) / batch_size))
 
     lr_scheduler.step()
 

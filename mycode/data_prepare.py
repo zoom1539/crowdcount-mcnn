@@ -3,11 +3,11 @@ Modify test_data/65/001.json first, or will raise error.
 '''
 import os
 import json
+import  xml.dom.minidom
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter
 from tqdm import tqdm
-
 
 def generate_densitymap(image,points,sigma=15):
     '''
@@ -43,40 +43,77 @@ def generate_densitymap(image,points,sigma=15):
     densitymap = densitymap / densitymap.sum() * points_quantity
     return densitymap    
 
+    
 if __name__ == '__main__':
     phase_list = ['train','test']
     for phase in phase_list:
-        temp_root = 'data/' + phase + '_data'
-        print('Now process -', temp_root)
-        for scene in os.listdir(temp_root):
-            temp_path = os.path.join(temp_root,scene)
+        scene_dir = 'data/' + phase + '_data'
+        for scene in os.listdir(scene_dir):
+            img_dir = os.path.join(scene_dir,scene)
             '''process each image'''
-            for name in tqdm(os.listdir(temp_path)):
-                if (name[0] not in ['0','1']) or name.split('.')[-1] != 'jpg':
+            for name in tqdm(os.listdir(img_dir)):
+                if name.split('.')[-1] != 'jpg':
                     continue
-                img_path = os.path.join(temp_path,name)
-                json_path = img_path.replace('jpg','json')
+                img_path = os.path.join(img_dir,name)
+                xml_path = img_path.replace('jpg','xml')
                 npy_path = img_path.replace('jpg','npy')
                 img = plt.imread(img_path)
-                # plt.imshow(img)
-                with open(json_path,'r') as load_f:
-                    anno = json.load(load_f)
-                    keyname = list(anno.keys())[0]
-                    anno = anno[keyname]['regions']
-                    points = []
-                    for head in anno:
-                        head = head['shape_attributes']
-                        x = head['x']
-                        y = head['y']
-                        width = head['width']
-                        height = head['height']
-                        points.append((x,y,width,height))
-                    '''generate density map'''
-                    densitymap = generate_densitymap(img,points)
-                    np.save(npy_path,densitymap)
-                    # plt.figure()
-                    # plt.imshow(densitymap)
 
-        #         break
-        #     break
-        # break
+                #
+                dom = xml.dom.minidom.parse(xml_path)
+                root = dom.documentElement
+
+                points = []
+                points_x = root.getElementsByTagName('x1')
+                points_y = root.getElementsByTagName('y1')
+
+                for point_x, point_y in zip(points_x, points_y):
+                    width = 0
+                    height = 0
+                    points.append((float(point_x.firstChild.data),float(point_y.firstChild.data),width,height))
+            
+                '''generate density map'''
+                densitymap = generate_densitymap(img,points, sigma=7)
+                np.save(npy_path,densitymap)
+
+
+# if __name__ == '__main__':
+#     phase_list = ['train','test']
+#     for phase in phase_list:
+#         temp_root = 'data/' + phase + '_data'
+#         print('Now process -', temp_root)
+#         for scene in os.listdir(temp_root):
+#             img_dir = os.path.join(temp_root,scene)
+#             '''process each image'''
+#             for name in tqdm(os.listdir(img_dir)):
+#                 if (name[0] not in ['0','1']) or name.split('.')[-1] != 'jpg':
+#                     continue
+#                 img_path = os.path.join(img_dir,name)
+#                 json_path = img_path.replace('jpg','json')
+#                 npy_path = img_path.replace('jpg','npy')
+#                 img = plt.imread(img_path)
+#                 # plt.imshow(img)
+#                 with open(json_path,'r') as load_f:
+#                     anno = json.load(load_f)
+#                     keyname = list(anno.keys())[0]
+#                     anno = anno[keyname]['regions']
+#                     points = []
+#                     for head in anno:
+#                         head = head['shape_attributes']
+#                         x = head['x']
+#                         y = head['y']
+#                         width = head['width']
+#                         height = head['height']
+#                         points.append((x,y,width,height))
+#                     '''generate density map'''
+#                     densitymap = generate_densitymap(img,points)
+#                     np.save(npy_path,densitymap)
+#                     # plt.figure()
+#                     # plt.imshow(densitymap)
+
+#         #         break
+#         #     break
+#         # break
+
+
+               
