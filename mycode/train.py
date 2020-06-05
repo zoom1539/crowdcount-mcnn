@@ -49,7 +49,7 @@ net = net.cuda(device_ids[0])
 criterion = nn.MSELoss()
 #optimizer = optim.SGD(net.parameters(), lr = lr, momentum = momentum, weight_decay = 1e-4)
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=lr)
-lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
+# lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 
 # training
 output_dir = 'data/saved_models'
@@ -106,7 +106,7 @@ for epoch in range(start_step, end_step+1):
         
             torch.save(net.state_dict(), "%s/net_%03d_%.5f.pth" %(output_dir, epoch, loss_sum / (i + 1) / batch_size))
 
-    lr_scheduler.step()
+    # lr_scheduler.step()
 
         
     
