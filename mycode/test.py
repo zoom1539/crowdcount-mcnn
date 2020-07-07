@@ -14,17 +14,17 @@ from dataset import CrowdDataset
 from tqdm import tqdm
 
 net = MCNN()
-device_ids = [4]
+device_ids = [1]
 net = net.cuda(device_ids[0])
 net = nn.DataParallel(net, device_ids = device_ids)
-net.load_state_dict(torch.load("data/saved_models/net_1900_0.26867.pth"))
+net.load_state_dict(torch.load("data/saved_models/net_1900_0.22603.pth"))
 
 def listdir(dir, list_name):
     for file in os.listdir(dir):
         file_path = os.path.join(dir, file)
         if os.path.isdir(file_path):
             listdir(file_path, list_name)
-        elif os.path.splitext(file_path)[1]=='.jpg' and file_path.find('_.') == -1:
+        elif os.path.splitext(file_path)[1]=='.bmp' and file_path.find('_.bmp') != -1:
             list_name.append(file_path)
 
 if __name__ == "__main__":
@@ -55,11 +55,11 @@ if __name__ == "__main__":
             density_map = density_map_cuda.data.cpu().numpy()
             count = np.sum(density_map)
             # print(count)
-            dmap_save_path = img_path.replace('.jpg', '___.jpg')
+            dmap_save_path = img_path.replace('bmp', 'predict.bmp')
             plt.imsave(dmap_save_path,density_map[0,0,:,:])
             
             #
-            gt_dmap=np.load(img_path.replace('.jpg','.npy'))
+            gt_dmap=np.load(img_path.replace('_.bmp','npy'))
             gt_count = np.sum(gt_dmap)   
             # print(gt_count)
             # plt.imsave('data/_gt_dmap.bmp',gt_dmap)
@@ -68,9 +68,9 @@ if __name__ == "__main__":
             # img = cv2.resize(ori_img,(density_map.shape[1], density_map.shape[0]))
             # dst = cv2.addWeighted(img,0.5,density_map[0,0,:,:],0.5,0)
             # plt.imsave('data/_dst.bmp',gt_dmap)
-            cv2.putText(ori_img,'ground truth: ' + str(int(gt_count)),(50,150),cv2.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
+            cv2.putText(ori_img,'ground truth: ' + str(int(gt_count + 0.5)),(50,150),cv2.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
             cv2.putText(ori_img,'count: ' + str(int(count + 0.5)),(50,250),cv2.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
-            save_path = img_path.replace('.jpg', '____.jpg')
+            save_path = img_path.replace('bmp', 'show.bmp')
             plt.imsave(save_path, ori_img)
 
 
