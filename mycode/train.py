@@ -19,7 +19,7 @@ lr = 0.0001
 momentum = 0.9
 val_interval = 50
 save_interval = 100
-batch_size = 32
+batch_size = 8
 
 # dataset
 train_dir = 'data/train_data'
@@ -42,7 +42,7 @@ dataloader_test = torch.utils.data.DataLoader(dataset = dataset_test,
 # model
 net = MCNN()
 weights_init(net, dev=0.01)
-device_ids = [i for i in range(0,8)]
+device_ids = [i for i in range(1,4)]
 net = nn.DataParallel(net, device_ids = device_ids)
 net = net.cuda(device_ids[0])
 
@@ -81,10 +81,10 @@ for epoch in range(start_step, end_step+1):
             density_map = density_map_cuda.data.cpu().numpy()
             count = np.sum(density_map)
             print('gt_count: ', gt_count, 'count: ', count, 'avg loss: ', (count - gt_count) / batch_size)    
-            plt.imsave('data/density_map.bmp',density_map[0,0,:,:])
-            plt.imsave('data/gt_dmap.bmp',gt_dmap[0,0,:,:])
+            plt.imsave('data/density_map.jpg',density_map[0,0,:,:])
+            plt.imsave('data/gt_dmap.jpg',gt_dmap[0,0,:,:])
             img = img.numpy().transpose((0,2,3,1))
-            plt.imsave('data/img.bmp',img[0,:,:,:])
+            plt.imsave('data/img.jpg',img[0,:,:,:])
         
     if epoch % save_interval == 0:
         with torch.no_grad():

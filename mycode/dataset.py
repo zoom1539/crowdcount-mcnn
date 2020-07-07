@@ -25,7 +25,7 @@ class CrowdDataset(Dataset):
         self.img_paths = []
         for scene_path in scene_paths:
             for file in os.listdir(scene_path):
-                if file.split('.')[-1] == 'jpg':
+                if file.split('.')[-1] == 'bmp' and file.find('_.bmp') != -1:
                     self.img_paths.append(os.path.join(scene_path, file))
 
         self.sample_num=len(self.img_paths)
@@ -41,7 +41,7 @@ class CrowdDataset(Dataset):
             img=img[:,:,np.newaxis]
             img=np.concatenate((img,img,img),2)
 
-        gt_dmap=np.load(img_path.replace('.jpg','.npy'))
+        gt_dmap=np.load(img_path.replace('_.bmp','npy'))
         # print(gt_dmap.sum())
         # if self.gt_downsample > 1: # to downsample image and density-map to match deep-model.
         #     ds_rows=int(img.shape[0]//self.gt_downsample)

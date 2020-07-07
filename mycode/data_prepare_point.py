@@ -52,7 +52,7 @@ if __name__ == '__main__':
             img_dir = os.path.join(scene_dir,scene)
             '''process each image'''
             for name in tqdm(os.listdir(img_dir)):
-                if name.split('.')[-1] != 'jpg':
+                if name.split('.')[-1] != 'jpg' :
                     continue
                 img_path = os.path.join(img_dir,name)
                 xml_path = img_path.replace('jpg','xml')
